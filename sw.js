@@ -1,6 +1,6 @@
 // Keeps the launcher page itself available offline (the app needs the internet anyway).
 // Change the version (v1 -> v2 ...) whenever a file here changes, so phones fetch the new copy.
-const CACHE = "sky-taqwim-launcher-v3";
+const CACHE = "sky-taqwim-launcher-v4";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
                "icons/icon-maskable-512.png", "icons/apple-touch-icon.png", "icons/favicon-32.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
