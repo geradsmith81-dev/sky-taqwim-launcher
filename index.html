@@ -26,6 +26,11 @@
   a.go { display: block; background: #2a4d9b; color: #fff; text-decoration: none; font-weight: 700; border: 1px solid #ebc25f;
           font-size: 1.15rem; padding: 0.95rem; border-radius: 0.7rem; }
   a.go.off { background: #14214a; color: #d9d2bd; border-style: dashed; pointer-events: none; }
+  button.install { display: none; width: 100%; margin-top: 0.8rem; background: #ebc25f; color: #0b1430; border: 0;
+                   font: 700 1.1rem/1.3 -apple-system, "Segoe UI", Roboto, sans-serif; padding: 0.9rem; border-radius: 0.7rem; cursor: pointer; }
+  .ios { display: none; text-align: left; background: #14214a; border: 1px solid #9fdcec; border-radius: 0.6rem;
+         padding: 0.8rem 1rem; margin-top: 0.9rem; }
+  .ios b { color: #ebc25f; }
   .wait { color: #d9d2bd; font-size: 0.92rem; margin-top: 0.6rem; }
   details { text-align: left; background: #14214a; border: 1px solid #a8792a; border-radius: 0.6rem;
              padding: 0.7rem 1rem; margin-top: 1.1rem; }
@@ -41,9 +46,14 @@
   <p class="sub">The Islamic calendar, Sunni and Shia, from NASA JPL astronomy: month starts, holy days, the Moon and the qibla.</p>
   <div class="status" id="status">Opening Sky Taqwim ...</div>
   <a class="go" id="go" href="#">Open Sky Taqwim</a>
+  <button class="install" id="install" type="button">Add Sky Taqwim to this device</button>
+  <div class="ios" id="ios">To put Sky Taqwim on this <span id="iosdev">iPhone</span>'s home screen: tap the <b>Share</b> button
+    (the square with an arrow, at the top right on iPad or the bottom on iPhone), scroll down, tap
+    <b>Add to Home Screen</b>, then <b>Add</b>.</div>
   <p class="wait" id="wait">If it has been asleep it shows "This app has gone to sleep": tap the button there and wait about a minute.</p>
   <details id="howto">
     <summary>Put it on your home screen</summary>
+    <p>The page must be opened in <b>Safari</b> on iPhone/iPad, or in <b>Chrome</b> on Android.</p>
     <p><b>iPhone or iPad (Safari):</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, then <b>Add</b>.</p>
     <p><b>Android (Chrome, Samsung Internet, Edge):</b> tap the three dots, then <b>Add to home screen</b> or <b>Install app</b>.</p>
     <p>Then open it from the icon <b>Sky Taqwim</b> (a gold arch under the new crescent): it goes straight to the app.</p>
@@ -54,7 +64,7 @@
 </main>
 <script>
   // The address of the app. When Streamlit gives it an address, put it here (one line).
-  var APP_URL = "https://sky-taqwim-dzqereapoeydc8k9bbgkvd.streamlit.app/";
+  var APP_URL = "REPLACE-WITH-STREAMLIT-APP-URL";
   var ready = /^https:\/\//.test(APP_URL) && APP_URL.indexOf("REPLACE-WITH") < 0;
   var go = document.getElementById("go");
   if (ready) {
@@ -71,14 +81,48 @@
       + "The owner sets APP_URL in index.html (see README.md).";
     document.getElementById("wait").style.display = "none";
   }
-  // Opened from the home-screen icon: go straight to the app, once per launch (so "back" does not loop).
+  // Opened from the home-screen icon: go straight to the app.
+  // "standalone" = installed app (iPhone/iPad home screen, Android "Install app");
+  // "fromHome"  = an Android "Add to home screen" shortcut, which opens in the browser with ?source=homescreen.
   var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
-  if (standalone) {
+  var fromHome = /[?&]source=homescreen/.test(window.location.search);
+  function openApp() {
+    // A short time guard instead of once-per-session, so every launch from the icon opens the app,
+    // while a quick "back" cannot bounce in a loop. replace() also keeps this page out of the history.
+    var last = 0;
+    try { last = parseInt(localStorage.getItem("skytaqwim-opened-at") || "0", 10); } catch (e) {}
+    if (Date.now() - last < 4000) { return; }
+    try { localStorage.setItem("skytaqwim-opened-at", String(Date.now())); } catch (e) {}
+    setTimeout(function () { window.location.replace(APP_URL); }, 400);
+  }
+  if (ready && (standalone || fromHome)) {
     document.getElementById("howto").style.display = "none";
-    if (ready && !sessionStorage.getItem("skytaqwim-opened")) {
-      sessionStorage.setItem("skytaqwim-opened", "1");
-      setTimeout(function () { window.location.href = APP_URL; }, 600);
-    }
+    openApp();
+    // iPhone/iPad keep the home-screen app in memory: when it is brought back to the front, open the app again.
+    window.addEventListener("pageshow", function (e) { if (e.persisted) { openApp(); } });
+  }
+  // Offer to add the launcher to the home screen.
+  // Android/Chrome: the browser hands us its install prompt, shown when the button is pressed.
+  // iPhone/iPad: Apple allows no prompt, so show where the Share > Add to Home Screen command is.
+  var deferredPrompt = null;
+  var installBtn = document.getElementById("install");
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!standalone) { installBtn.style.display = "block"; }
+  });
+  installBtn.addEventListener("click", function () {
+    if (!deferredPrompt) { return; }
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () { deferredPrompt = null; installBtn.style.display = "none"; });
+  });
+  window.addEventListener("appinstalled", function () { installBtn.style.display = "none"; });
+  var ua = navigator.userAgent || "";
+  var isIPad = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var isIOS = isIPad || /iPhone|iPod/.test(ua);
+  if (isIOS && !standalone) {
+    document.getElementById("iosdev").textContent = isIPad ? "iPad" : "iPhone";
+    document.getElementById("ios").style.display = "block";
   }
   if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js").catch(function () {}); }
 </script>
