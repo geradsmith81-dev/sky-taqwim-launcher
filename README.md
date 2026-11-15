@@ -66,3 +66,7 @@ reload it (this fetches the new copy), or delete the icon and add it again.
 * The app itself is never cached by the service worker: calendar and sky data always come fresh from the app.
 * Colours follow the app's theme: night lapis `#0b1430`, gold `#ebc25f`, ivory `#f6efdc`, lapis button `#2a4d9b`
   (white text 8.0:1).
+
+## License
+
+MIT License, copyright (c) 2026 Gerad Smith. See [LICENSE](LICENSE).
