@@ -1,72 +1,63 @@
-# Sky Taqwim launcher · تقويم السماء
+# Sky Taqwim · تقويم السماء
 
-Home-screen page for **Sky Taqwim**, the Islamic calendar (Sunni and Shia) from NASA JPL astronomy. Add this page to a
-phone's home screen; opening the icon goes straight to the app.
+The Islamic calendar for **Sunni or Shia** practice, from NASA JPL astronomy (DE440s via Skyfield).
 
-While `APP_URL` in `index.html` is still `REPLACE-WITH-STREAMLIT-APP-URL`, the page says so and does **not** redirect.
+- **A Sunni / Shia switch** sets the holy days, the default calendar and sighting rule, and the prayer-time methods.
+- **Seven calendars:**
+  - **Umm al-Qura · أم القرى**, the official Saudi calendar. It uses the published table for 1343–1500 AH and the current rule computed from JPL elsewhere. It matches the table in 932 of 936 months since 1423 AH.
+  - **Crescent sighting · رؤية الهلال**. Months begin after the evening on which the crescent passes the chosen rule, seen from Mecca, from your own place or from one of 21 cities. The rules are Yallop, Odeh, Neo-MABIMS, wujud al-hilal and conjunction.
+  - **Unified Hijri · الموحد** (Istanbul 2016: 5° + 8° anywhere on Earth), used by Turkey's Diyanet and by Muhammadiyah. It matches Diyanet's published calendar in 184 of 186 months.
+  - **Tabular · الحسابي**, standard (Kuwaiti) or Fatimid/Bohra.
+  - **Solar Hijri · الهجري الشمسي** of Iran and Afghanistan, with Nowruz from the JPL equinox.
+  - **Hijri Shamsi**, the Ahmadiyya solar calendar.
+  - **Julian (Rumi)**, with the Syriac month names; Hıdırellez and other Alevi and Alawite days are fixed in it.
+- **Traditions page:** the Sunni schools and movements, the Shia branches, and the Ibadis, Ahmadis, Quranists, Sufis and Kharijites, each listed under the calendar it uses, with a **Use** button that sets the app to model that practice.
+- **Prayer times:**
+  - Sunni methods: MWL, ISNA, Egypt, Umm al-Qura, Karachi, Diyanet, the Gulf states, JAKIM and others, with Shafi'i or Hanafi Asr.
+  - Shia methods: Leva Institute of Qum, and Tehran, with Ja'fari Maghrib and midnight.
+  - Plus imsak, the Moon, and a live qibla compass: on a phone held flat the arrow turns with the phone and points to the Kaaba (corrected for magnetic declination).
+- **Pages:** Today, Traditions, Month, Year & holy days (with .ics and .csv downloads), Prayer times, Crescent, Compare, How it works.
+- **Sources:** each holy day opens a short sourced history (48 entries), and both traditions are presented in their own terms.
+- **Location:** found automatically (the browser asks once). Proper nouns are also shown in Arabic script (Persian for the solar months). The design follows early Islamic (Umayyad and Abbasid) art.
 
-## What is in this folder
+See `HOW_IT_WORKS.md` for the rules and sources, and `docs/VALIDATION.md` for the checks.
 
-| File | What it does |
-|---|---|
-| `index.html` | The page. It holds the app's address (`APP_URL`, one line near the bottom). |
-| `manifest.webmanifest` | Name, colours and icons for Android and desktop "Install app". Starts at `./?source=homescreen`. |
-| `sw.js` | A small service worker that keeps this page (not the app) available offline. |
-| `icons/` | `apple-touch-icon.png` (180, iPhone/iPad), `favicon-32.png`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` (Android; the art sits inside the central safe circle). |
+## Put it online (GitHub + Streamlit Community Cloud)
 
-## Publish it on GitHub Pages (once)
+1. On github.com, create a new **public** repository named `sky-taqwim`.
+2. Choose **Add file → Upload files** and drag in *everything in this folder*. Upload the `assets`, `data`, `docs`, `ephem`, `tests` and `tools` folders as folders.
+3. Browsers often skip the hidden `.streamlit` folder. If it is missing after the upload, choose **Add file → Create new file**, type the name `.streamlit/config.toml`, and paste the *contents* of `config.toml for GitHub (paste).txt` (not its file name). The app reads correctly without it too (its colours are set in `theme.py`), but the file keeps Streamlit's own accents in the same colours.
+4. At https://share.streamlit.io choose **Create app**, select the repository, branch `main` and file `app.py`. Under **Advanced settings** pick **Python 3.12**, then **Deploy**.
+5. The first start downloads the NASA JPL file (32.7 MB), which takes about a minute.
 
-1. Sign in to GitHub and press **New repository**. Name it `sky-taqwim-launcher`, choose **Public**, and press **Create repository**.
-2. On the new repository's page, press **Add file**, then **Upload files**. Drag in everything from this folder:
-   `index.html`, `manifest.webmanifest`, `sw.js`, `README.md` and the whole `icons` folder (drag the folder itself so
-   the files land in `icons/`). Press **Commit changes**.
-3. Open **Settings**, then **Pages** (left column). Under **Build and deployment**, set **Source** to
-   **Deploy from a branch**, **Branch** to `main` and the folder to `/ (root)`. Press **Save**.
-4. Wait a minute or two, then reload the Pages settings. GitHub shows the address, for example
-   `https://YOUR-GITHUB-NAME.github.io/sky-taqwim-launcher/`. Open it: the page should say the app address is not set yet.
+## Run locally
 
-## Add the app's address (when the Streamlit app is live)
+Install the exact, checksum-verified versions the app was tested with (Python 3.12 or newer):
 
-1. Deploy the Sky Taqwim app on Streamlit Community Cloud and copy its address (it ends in `.streamlit.app/`).
-2. In the launcher repository, open `index.html` and press the pencil (**Edit**).
-3. Near the bottom, change the line
-   `var APP_URL = "REPLACE-WITH-STREAMLIT-APP-URL";`
-   to your address, for example `var APP_URL = "https://sky-taqwim-example.streamlit.app/";`
-   (keep the quotation marks and the semicolon).
-4. Open `sw.js`, change `sky-taqwim-launcher-v1` to `sky-taqwim-launcher-v2`, and commit. This makes phones that
-   already have the page fetch the new copy. Do the same (v3, v4 ...) after any later change.
-5. Wait a minute and open the Pages address again. The button now reads **Open Sky Taqwim** and opens the app.
+```
+python -m venv .venv
+.venv\Scripts\python -m pip install --require-hashes --only-binary ":all:" -r requirements.txt
+.venv\Scripts\python -m streamlit run app.py --server.address 127.0.0.1
+```
 
-If Streamlit ever gives the app a new address, repeat steps 2-5.
+`requirements.in` lists the direct components; `requirements.txt` is the full lock with SHA-256
+hashes (generated with `uv pip compile requirements.in --universal --python-version 3.12
+--generate-hashes --only-binary :all:`). The same lock serves Streamlit Community Cloud.
 
-## Put it on a phone's home screen
+## Dates, data and credits
 
-* **iPhone or iPad (Safari):** open the Pages address, tap the Share button (square with an arrow), then
-  **Add to Home Screen**, then **Add**.
-* **Android (Chrome, Samsung Internet, Edge):** open the Pages address, tap the three dots, then
-  **Add to home screen** or **Install app**.
+Dates run from 1850 to 2149. Put de440.bsp in `ephem/` for the prayer times and the Moon to reach 1550–2650. The Mecca crescent table then needs rebuilding with `python tools/build_tables.py`.
 
-The page also offers this itself: on Android it shows an **Add Sky Taqwim to this device** button (the browser's own
-install prompt), and on iPhone/iPad it shows where the Share > **Add to Home Screen** command is.
-
-Then open it from the icon **Sky Taqwim** (a gold arch under the new crescent): it goes straight to the app. This works
-for both kinds of home-screen icon: an installed app (it opens in its own window) and an Android shortcut (it opens in
-the browser with `?source=homescreen`). The page replaces itself with the app, so the Back button does not return to
-it and cannot loop; every launch from the icon opens the app. The first time you tap **Use my location** in the app,
-allow location for the site.
-
-**If an icon made before November 2026 still stops at this page:** open the Pages address once in the browser and
-reload it (this fetches the new copy), or delete the icon and add it again.
-
-## Notes
-
-* Adapted from the public template `geradsmith81-dev/afterglow-launcher` (same files; renamed, recoloured, given the placeholder
-  check and an offline fallback that ignores `?source=homescreen`; the redirect and install prompt follow
-  `geradsmith81-dev/sky-luach-launcher`).
-* The app itself is never cached by the service worker: calendar and sky data always come fresh from the app.
-* Colours follow the app's theme: night lapis `#0b1430`, gold `#ebc25f`, ivory `#f6efdc`, lapis button `#2a4d9b`
-  (white text 8.0:1).
+The Americas coastline table and the transcription of Diyanet's calendar come from the libmuslim project (Apache-2.0); see `THIRD_PARTY.md`. The Arabic fonts are subsets of Noto Kufi Arabic and Noto Naskh Arabic, © The Noto Project Authors, under the SIL Open Font License (`assets/fonts/`).
 
 ## License
 
-MIT License, copyright (c) 2026 Gerad Smith. See [LICENSE](LICENSE).
+MIT License, copyright (c) 2026 Gerad Smith. See [LICENSE](LICENSE). Third-party data and fonts keep their own licences: see [THIRD_PARTY.md](THIRD_PARTY.md).
+
+## Security and privacy
+
+- The Windows desktop copy of Sky Taqwim listens on this computer only (127.0.0.1). "Share on this network.bat" can open it to the local network, protected by a new password each time; only the person at the computer sees the Quit button.
+- The desktop copy keeps its data and logs in `%LOCALAPPDATA%\SkyTaqwim`, checks its program files against `MANIFEST.sha256` at every start, and each release publishes SHA-256 checksums of its zips in `SHA256SUMS.txt`.
+- All components are pinned to exact versions and installed with `--require-hashes`.
+- The desktop-only code (`desktop.py`) does nothing on a hosted copy: no Quit button is shown there.
+- The app keeps no accounts, places or settings on the server; it uses the browser's location only to work out local times and the qibla.

@@ -1,0 +1,8 @@
+# only for tools/validate.py
+-r requirements.txt
+convertdate
+jdatetime
+persiantools
+adhanpy
+geographiclib
+hijri-converter==2.3.2.post1
